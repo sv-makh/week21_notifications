@@ -74,8 +74,10 @@ class _NotificationsAppState extends State<NotificationsApp> {
         'repeating channel name',
         channelDescription: 'repeating description'
       );
+    const IOSNotificationDetails iosDetails =
+      IOSNotificationDetails();
     const NotificationDetails platformChannelSpecifics =
-      NotificationDetails(android: androidPlatformChannelSpecifics);
+      NotificationDetails(android: androidPlatformChannelSpecifics, iOS: iosDetails);
     await localNotifications.periodicallyShow(
         0,
         'Ежедневное напоминание',
