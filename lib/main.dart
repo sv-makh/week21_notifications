@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:timezone/data/latest_all.dart' as tz;
+import 'package:timezone/timezone.dart' as tz;
 
 void main() {
   runApp(const MyApp());
@@ -49,30 +51,72 @@ class _NotificationsAppState extends State<NotificationsApp> {
     localNotifications.initialize(initializationSettings);
   }
 
-  Future _showNotification() async {
-    var androidDetails = AndroidNotificationDetails(
-      "ID",
-      "Название уведомления",
-      importance: Importance.high,
-      channelDescription: "Контент уведомления",
-    );
-    var iosDetails = IOSNotificationDetails();
-    var generalNotificationDetails =
-    NotificationDetails(android: androidDetails, iOS: iosDetails);
+  Future<void> _showNotificationNow() async {
+    const AndroidNotificationDetails androidDetails =
+      AndroidNotificationDetails(
+        "ID",
+        "Название уведомления",
+        //importance: Importance.high,
+        channelDescription: "Контент уведомления",
+      );
+    const IOSNotificationDetails iosDetails =
+      IOSNotificationDetails();
+    const NotificationDetails generalNotificationDetails =
+      NotificationDetails(android: androidDetails, iOS: iosDetails);
     await localNotifications.show(
         0, "Название", "Тело уведомления", generalNotificationDetails);
+  }
+
+  Future<void> _showNotificationsDaily() async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+      AndroidNotificationDetails(
+        'repeating channel ID',
+        'repeating channel name',
+        channelDescription: 'repeating description'
+      );
+    const NotificationDetails platformChannelSpecifics =
+      NotificationDetails(android: androidPlatformChannelSpecifics);
+    await localNotifications.periodicallyShow(
+        0,
+        'Ежедневное напоминание',
+        'Выделить полчаса на занятия программированием',
+        RepeatInterval.daily,
+        platformChannelSpecifics,
+        androidAllowWhileIdle: true
+    );
+
+    /*await localNotifications.zonedSchedule(
+      0,
+      'Your daily notification',
+      'Schedule half an hour to program',
+      scheduledDate,
+      notificationDetails,
+      uiLocalNotificationDateInterpretation: uiLocalNotificationDateInterpretation,
+      androidAllowWhileIdle: androidAllowWhileIdle
+    )*/
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: Center(
-        child: Text('Press button to receive notification'),
+      body: const Center(
+        child: Text('Press button to receive notifications'),
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showNotification,
-        child: Icon(Icons.notifications_none),
-      ),
+      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
+      floatingActionButton: Row( children: [
+        const SizedBox(width: 15),
+        FloatingActionButton.extended(
+          onPressed: _showNotificationNow,
+          icon: const Icon(Icons.notifications),
+          label: const Text('Notif now')
+        ),
+        const SizedBox(width: 15),
+        FloatingActionButton.extended(
+          onPressed: _showNotificationsDaily,
+          icon: const Icon(Icons.notifications_active),
+          label: const Text('Notif daily')
+        )
+      ]),
     );
   }
 }
