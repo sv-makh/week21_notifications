@@ -33,8 +33,34 @@ class _NotificationsAppState extends State<NotificationsApp> {
   @override
   void initState() {
     super.initState();
+    //объект для Android настроек
+    var androidInitialize = AndroidInitializationSettings('ic_launcher');
+    //объект для IOS настроек
+    var IOSInitialize = IOSInitializationSettings(
+      requestSoundPermission: false,
+      requestBadgePermission: false,
+      requestAlertPermission: false,);
+    // общая инициализация
+    var initializationSettings = InitializationSettings(
+        android: androidInitialize, iOS: IOSInitialize);
 
+    //создаем локальное уведомление
+    localNotifications = FlutterLocalNotificationsPlugin();
+    localNotifications.initialize(initializationSettings);
+  }
 
+  Future _showNotification() async {
+    var androidDetails = AndroidNotificationDetails(
+      "ID",
+      "Название уведомления",
+      importance: Importance.high,
+      channelDescription: "Контент уведомления",
+    );
+    var iosDetails = IOSNotificationDetails();
+    var generalNotificationDetails =
+    NotificationDetails(android: androidDetails, iOS: iosDetails);
+    await localNotifications.show(
+        0, "Название", "Тело уведомления", generalNotificationDetails);
   }
 
   @override
@@ -44,7 +70,7 @@ class _NotificationsAppState extends State<NotificationsApp> {
         child: Text('Press button to receive notification'),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () => {},
+        onPressed: _showNotification,
         child: Icon(Icons.notifications_none),
       ),
     );
