@@ -86,39 +86,42 @@ class _NotificationsAppState extends State<NotificationsApp> {
         platformChannelSpecifics,
         androidAllowWhileIdle: true
     );
-
-    /*await localNotifications.zonedSchedule(
-      0,
-      'Your daily notification',
-      'Schedule half an hour to program',
-      scheduledDate,
-      notificationDetails,
-      uiLocalNotificationDateInterpretation: uiLocalNotificationDateInterpretation,
-      androidAllowWhileIdle: androidAllowWhileIdle
-    )*/
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: const Center(
-        child: Text('Press button to receive notifications'),
+      body: Center(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+            Text('Press button to receive notifications'),
+            const SizedBox(height: 15),
+            FloatingActionButton.extended(
+                onPressed: _showNotificationNow,
+                icon: const Icon(Icons.notifications),
+                label: const Text('Notif now')
+            ),
+            const SizedBox(height: 15),
+            FloatingActionButton.extended(
+                onPressed: _showNotificationsDaily,
+                icon: const Icon(Icons.notifications_active),
+                label: const Text('Notifs daily')
+            ),
+            const SizedBox(height: 15),
+            FloatingActionButton.extended(
+              onPressed: () => {},
+              icon: const Icon(Icons.circle_notifications),
+              label: const Text('Notifs daily at choosen time'),
+            ),
+            const SizedBox(height: 15),
+            FloatingActionButton.extended(
+              onPressed: () => {},
+              icon: const Icon(Icons.notifications_off),
+              label: const Text('Delete notifs'),
+            )
+          ])
       ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerFloat,
-      floatingActionButton: Row( children: [
-        const SizedBox(width: 15),
-        FloatingActionButton.extended(
-          onPressed: _showNotificationNow,
-          icon: const Icon(Icons.notifications),
-          label: const Text('Notif now')
-        ),
-        const SizedBox(width: 15),
-        FloatingActionButton.extended(
-          onPressed: _showNotificationsDaily,
-          icon: const Icon(Icons.notifications_active),
-          label: const Text('Notif daily')
-        )
-      ]),
     );
   }
 }
