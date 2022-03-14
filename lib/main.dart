@@ -4,6 +4,7 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 void main() {
+  tz.initializeTimeZones();
   runApp(const MyApp());
 }
 
@@ -31,6 +32,7 @@ class NotificationsApp extends StatefulWidget {
 
 class _NotificationsAppState extends State<NotificationsApp> {
   late FlutterLocalNotificationsPlugin localNotifications;
+  TimeOfDay selectedTime = TimeOfDay.now();
 
   @override
   void initState() {
@@ -88,6 +90,47 @@ class _NotificationsAppState extends State<NotificationsApp> {
     );
   }
 
+  Future<void> _showNotificationsDailyAtChosenTime(BuildContext context) async {
+    TimeOfDay? newTime = await showTimePicker(
+      context: context,
+      initialTime: selectedTime,
+    );
+    if (newTime != null) {
+      selectedTime = newTime;
+      await localNotifications.zonedSchedule(
+          0,
+          'Ещё одно ежедневное напоминание',
+          'Время пить чай!',
+          _nextInstanceOfChosenTime(),
+          const NotificationDetails(
+            android: AndroidNotificationDetails('daily notification channel id',
+                'daily notification channel name',
+                channelDescription: 'daily notification description'),
+            iOS: IOSNotificationDetails()
+          ),
+          androidAllowWhileIdle: true,
+          uiLocalNotificationDateInterpretation:
+          UILocalNotificationDateInterpretation.absoluteTime,
+          matchDateTimeComponents: DateTimeComponents.time);
+    }
+  }
+
+  tz.TZDateTime _nextInstanceOfChosenTime() {
+    final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
+    print(selectedTime.hour);
+    print(selectedTime.minute);
+    tz.TZDateTime scheduledDate =
+    tz.TZDateTime(tz.local, now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
+    if (scheduledDate.isBefore(now)) {
+      scheduledDate = scheduledDate.add(const Duration(days: 1));
+    }
+    return scheduledDate;
+  }
+
+  Future<void> _cancelNotifications() async {
+    await localNotifications.cancelAll();
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -110,15 +153,17 @@ class _NotificationsAppState extends State<NotificationsApp> {
             ),
             const SizedBox(height: 15),
             FloatingActionButton.extended(
-              onPressed: () => {},
+              onPressed: () {
+                _showNotificationsDailyAtChosenTime(context);
+              },
               icon: const Icon(Icons.circle_notifications),
-              label: const Text('Notifs daily at choosen time'),
+              label: const Text('Notifs daily at chosen time'),
             ),
             const SizedBox(height: 15),
             FloatingActionButton.extended(
-              onPressed: () => {},
+              onPressed: _cancelNotifications,
               icon: const Icon(Icons.notifications_off),
-              label: const Text('Delete notifs'),
+              label: const Text('Cancel all notifs'),
             )
           ])
       ),
