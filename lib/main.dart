@@ -5,11 +5,15 @@ import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
 void main() async {
+  //необходимо для инициализации локального часового пояса
+  //в последующем вызове _configureLocalTimeZone
   WidgetsFlutterBinding.ensureInitialized();
   await _configureLocalTimeZone();
   runApp(const MyApp());
 }
 
+//инициализация базы часовых поясов и локального часового пояса
+//необходимо для правильного часа уведомления при выборе времени пользователем
 Future<void> _configureLocalTimeZone() async {
   tz.initializeTimeZones();
   final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
@@ -40,20 +44,22 @@ class NotificationsApp extends StatefulWidget {
 
 class _NotificationsAppState extends State<NotificationsApp> {
   late FlutterLocalNotificationsPlugin localNotifications;
+
+  //выбранное время для уведомлений
   TimeOfDay selectedTime = TimeOfDay.now();
 
   @override
   void initState() {
     super.initState();
     //объект для Android настроек
-    var androidInitialize = AndroidInitializationSettings('ic_launcher');
+    const AndroidInitializationSettings androidInitialize = AndroidInitializationSettings('ic_launcher');
     //объект для IOS настроек
-    var IOSInitialize = IOSInitializationSettings(
+    const IOSInitializationSettings IOSInitialize = IOSInitializationSettings(
       requestSoundPermission: false,
       requestBadgePermission: false,
       requestAlertPermission: false,);
     // общая инициализация
-    var initializationSettings = InitializationSettings(
+    const InitializationSettings initializationSettings = InitializationSettings(
         android: androidInitialize, iOS: IOSInitialize);
 
     //создаем локальное уведомление
@@ -61,6 +67,7 @@ class _NotificationsAppState extends State<NotificationsApp> {
     localNotifications.initialize(initializationSettings);
   }
 
+  //показывается одно уведоление при вызове этого метода
   Future<void> _showNotificationNow() async {
     const AndroidNotificationDetails androidDetails =
       AndroidNotificationDetails(
@@ -77,6 +84,7 @@ class _NotificationsAppState extends State<NotificationsApp> {
         0, "Название", "Тело уведомления", generalNotificationDetails);
   }
 
+  //после вызова этого метода уведомления будут показываться ежедневно
   Future<void> _showNotificationsDaily() async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
       AndroidNotificationDetails(
@@ -98,11 +106,16 @@ class _NotificationsAppState extends State<NotificationsApp> {
     );
   }
 
+  //после вызова этого метода уведомления будут показываться ежедневно
+  //в выбранное время
   Future<void> _showNotificationsDailyAtChosenTime(BuildContext context) async {
+    //выбор времени
     TimeOfDay? newTime = await showTimePicker(
       context: context,
       initialTime: selectedTime,
     );
+    //newTime == null, если пользователь при выборе времени нажмет Отмена,
+    //иначе уведомления будут показываться в выбранное время
     if (newTime != null) {
       selectedTime = newTime;
       await localNotifications.zonedSchedule(
@@ -123,6 +136,7 @@ class _NotificationsAppState extends State<NotificationsApp> {
     }
   }
 
+  //рассчёт следующего времени для ежедневного уведомления в выбранное время
   tz.TZDateTime _nextInstanceOfChosenTime() {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
     tz.TZDateTime scheduledDate =
