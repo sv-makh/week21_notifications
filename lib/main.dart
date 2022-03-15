@@ -1,11 +1,19 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:flutter_native_timezone/flutter_native_timezone.dart';
 import 'package:timezone/data/latest_all.dart' as tz;
 import 'package:timezone/timezone.dart' as tz;
 
-void main() {
-  tz.initializeTimeZones();
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+  await _configureLocalTimeZone();
   runApp(const MyApp());
+}
+
+Future<void> _configureLocalTimeZone() async {
+  tz.initializeTimeZones();
+  final String? timeZoneName = await FlutterNativeTimezone.getLocalTimezone();
+  tz.setLocalLocation(tz.getLocation(timeZoneName!));
 }
 
 class MyApp extends StatelessWidget {
@@ -58,7 +66,7 @@ class _NotificationsAppState extends State<NotificationsApp> {
       AndroidNotificationDetails(
         "ID",
         "Название уведомления",
-        //importance: Importance.high,
+        importance: Importance.high,
         channelDescription: "Контент уведомления",
       );
     const IOSNotificationDetails iosDetails =
@@ -117,8 +125,6 @@ class _NotificationsAppState extends State<NotificationsApp> {
 
   tz.TZDateTime _nextInstanceOfChosenTime() {
     final tz.TZDateTime now = tz.TZDateTime.now(tz.local);
-    print(selectedTime.hour);
-    print(selectedTime.minute);
     tz.TZDateTime scheduledDate =
     tz.TZDateTime(tz.local, now.year, now.month, now.day, selectedTime.hour, selectedTime.minute);
     if (scheduledDate.isBefore(now)) {
@@ -143,13 +149,13 @@ class _NotificationsAppState extends State<NotificationsApp> {
             FloatingActionButton.extended(
                 onPressed: _showNotificationNow,
                 icon: const Icon(Icons.notifications),
-                label: const Text('Notif now')
+                label: const Text('Notification now')
             ),
             const SizedBox(height: 15),
             FloatingActionButton.extended(
                 onPressed: _showNotificationsDaily,
                 icon: const Icon(Icons.notifications_active),
-                label: const Text('Notifs daily')
+                label: const Text('Notifications daily')
             ),
             const SizedBox(height: 15),
             FloatingActionButton.extended(
@@ -157,13 +163,13 @@ class _NotificationsAppState extends State<NotificationsApp> {
                 _showNotificationsDailyAtChosenTime(context);
               },
               icon: const Icon(Icons.circle_notifications),
-              label: const Text('Notifs daily at chosen time'),
+              label: const Text('Notifications daily at chosen time'),
             ),
             const SizedBox(height: 15),
             FloatingActionButton.extended(
               onPressed: _cancelNotifications,
               icon: const Icon(Icons.notifications_off),
-              label: const Text('Cancel all notifs'),
+              label: const Text('Cancel all notifications'),
             )
           ])
       ),
